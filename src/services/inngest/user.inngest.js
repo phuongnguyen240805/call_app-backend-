@@ -4,7 +4,7 @@ import { inngest } from "./inngestClient.js";
 // Inngest function to save user data to a database
 const syncUserCreation = inngest.createFunction(
     { id: "sync-user-from-clerk" },
-    { event: "clerk/user.created" },
+    { event: "clerk/session.created" },
     async ({ event }) => {
         try {
             const {
@@ -30,7 +30,7 @@ const syncUserCreation = inngest.createFunction(
 // Inngest function to delete user from database
 const syncUserDeletion = inngest.createFunction(
     { id: "delete-user-with-clerk" },
-    { event: "clerk/user.deleted" },
+    { event: "clerk/session.deleted" },
     async ({ event }) => {
         try {
             const { id } = event.data;
@@ -44,7 +44,7 @@ const syncUserDeletion = inngest.createFunction(
 // Inngest function to update user from database by id
 const syncUserUpdation = inngest.createFunction(
     { id: "update-user-from-clerk" },
-    { event: "clerk/user.updated" },
+    { event: "clerk/session.updated" },
     async ({ event }) => {
         try {
             const {
