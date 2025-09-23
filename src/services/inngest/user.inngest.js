@@ -1,7 +1,5 @@
-import { Inngest } from "inngest";
 import User from "../../models/User.js";
-
-export const inngest = new Inngest({ id: "video_call_app" });
+import { inngest } from "./inngestClient.js";
 
 // Inngest function to save user data to a database
 const syncUserCreation = inngest.createFunction(

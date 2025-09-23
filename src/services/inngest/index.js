@@ -1,7 +1,7 @@
 import { syncUserUpdation, syncUserCreation, syncUserDeletion } from "./user.inngest.js";
-import { inngest } from "./user.inngest.js";
+import { inngest } from "./inngestClient.js";
 
-export { inngest }
+export { inngest };
 
 export const functions = [
     syncUserCreation,
