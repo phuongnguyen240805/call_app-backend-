@@ -13,11 +13,14 @@ import connectDB from "./lib/db.js";
 const app = express();
 const PORT = process.env.PORT;
 
+// CORS: Cho phép các origin gọi API
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [];
+
 const __dirname = path.resolve();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true, // allow frontend to send cookies
   })
 );

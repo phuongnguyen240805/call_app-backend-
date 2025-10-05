@@ -8,15 +8,15 @@ export async function getRecommendedUsers(req, res) {
 
     const recommendedUsers = await User.find({
       $and: [
-        { _id: { $ne: currentUserId } }, //exclude current user
-        { _id: { $nin: currentUser.friends } }, // exclude current user's friends
+        { _id: { $ne: currentUserId } }, // loại trừ chính mình
+        { _id: { $nin: currentUser.friends } }, // loại trừ bạn bè đã kết bạn
         { isOnboarded: true },
       ],
     });
     res.status(200).json(recommendedUsers);
   } catch (error) {
-    console.error("Error in getRecommendedUsers controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Lỗi trong controller getRecommendedUsers", error.message);
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 }
 
@@ -28,8 +28,8 @@ export async function getMyFriends(req, res) {
 
     res.status(200).json(user.friends);
   } catch (error) {
-    console.error("Error in getMyFriends controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Lỗi trong controller getMyFriends", error.message);
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 }
 
@@ -38,22 +38,22 @@ export async function sendFriendRequest(req, res) {
     const myId = req.user.id;
     const { id: recipientId } = req.params;
 
-    // prevent sending req to yourself
+    // Không cho phép gửi lời mời kết bạn cho chính mình
     if (myId === recipientId) {
-      return res.status(400).json({ message: "You can't send friend request to yourself" });
+      return res.status(400).json({ message: "Bạn không thể gửi lời mời kết bạn cho chính mình" });
     }
 
     const recipient = await User.findById(recipientId);
     if (!recipient) {
-      return res.status(404).json({ message: "Recipient not found" });
+      return res.status(404).json({ message: "Không tìm thấy người nhận" });
     }
 
-    // check if user is already friends
+    // Kiểm tra đã là bạn bè chưa
     if (recipient.friends.includes(myId)) {
-      return res.status(400).json({ message: "You are already friends with this user" });
+      return res.status(400).json({ message: "Bạn đã là bạn bè với người này" });
     }
 
-    // check if a req already exists
+    // Kiểm tra đã có lời mời kết bạn chưa
     const existingRequest = await FriendRequest.findOne({
       $or: [
         { sender: myId, recipient: recipientId },
@@ -64,7 +64,7 @@ export async function sendFriendRequest(req, res) {
     if (existingRequest) {
       return res
         .status(400)
-        .json({ message: "A friend request already exists between you and this user" });
+        .json({ message: "Đã tồn tại lời mời kết bạn giữa bạn và người này" });
     }
 
     const friendRequest = await FriendRequest.create({
@@ -74,8 +74,8 @@ export async function sendFriendRequest(req, res) {
 
     res.status(201).json(friendRequest);
   } catch (error) {
-    console.error("Error in sendFriendRequest controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Lỗi trong controller sendFriendRequest", error.message);
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 }
 
@@ -86,19 +86,19 @@ export async function acceptFriendRequest(req, res) {
     const friendRequest = await FriendRequest.findById(requestId);
 
     if (!friendRequest) {
-      return res.status(404).json({ message: "Friend request not found" });
+      return res.status(404).json({ message: "Không tìm thấy lời mời kết bạn" });
     }
 
-    // Verify the current user is the recipient
+    // Xác minh người dùng hiện tại là người nhận
     if (friendRequest.recipient.toString() !== req.user.id) {
-      return res.status(403).json({ message: "You are not authorized to accept this request" });
+      return res.status(403).json({ message: "Bạn không có quyền chấp nhận lời mời này" });
     }
 
     friendRequest.status = "accepted";
     await friendRequest.save();
 
-    // add each user to the other's friends array
-    // $addToSet: adds elements to an array only if they do not already exist.
+    // Thêm mỗi người vào danh sách bạn bè của nhau
+    // $addToSet: chỉ thêm nếu chưa tồn tại trong mảng
     await User.findByIdAndUpdate(friendRequest.sender, {
       $addToSet: { friends: friendRequest.recipient },
     });
@@ -107,10 +107,10 @@ export async function acceptFriendRequest(req, res) {
       $addToSet: { friends: friendRequest.sender },
     });
 
-    res.status(200).json({ message: "Friend request accepted" });
+    res.status(200).json({ message: "Đã chấp nhận lời mời kết bạn" });
   } catch (error) {
-    console.log("Error in acceptFriendRequest controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.log("Lỗi trong controller acceptFriendRequest", error.message);
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 }
 
@@ -128,8 +128,8 @@ export async function getFriendRequests(req, res) {
 
     res.status(200).json({ incomingReqs, acceptedReqs });
   } catch (error) {
-    console.log("Error in getPendingFriendRequests controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.log("Lỗi trong controller getPendingFriendRequests", error.message);
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 }
 
@@ -142,7 +142,7 @@ export async function getOutgoingFriendReqs(req, res) {
 
     res.status(200).json(outgoingRequests);
   } catch (error) {
-    console.log("Error in getOutgoingFriendReqs controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.log("Lỗi trong controller getOutgoingFriendReqs", error.message);
+    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
   }
 }
