@@ -85,8 +85,8 @@ export async function login(req, res) {
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true, // ngăn chặn XSS
-      sameSite: "strict", // ngăn chặn CSRF
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "none", // cho phép cookie cross-domain
+      secure: true,
     });
 
     res.status(200).json({ success: true, user });
