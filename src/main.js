@@ -13,6 +13,8 @@ import connectDB from "./lib/db.js";
 const app = express();
 const PORT = process.env.PORT;
 
+// console.log("JWT_SECRET_KEY exists:", !!process.env.JWT_SECRET_KEY);
+
 // CORS: Cho phép các origin gọi API
 const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [];
 
@@ -22,7 +24,6 @@ const __dirname = path.resolve();
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Nếu không có origin (vd: Postman) thì cho phép
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
