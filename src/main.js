@@ -18,12 +18,25 @@ const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [];
 
 const __dirname = path.resolve();
 
+import cors from "cors";
+
 app.use(
   cors({
-    origin: allowedOrigins,
-    credentials: true, // allow frontend to send cookies
+    origin: (origin, callback) => {
+      // Nếu không có origin (vd: Postman) thì cho phép
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`❌ Blocked by CORS: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
+
 
 app.use(express.json());
 app.use(cookieParser());
