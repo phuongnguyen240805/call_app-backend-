@@ -7,22 +7,22 @@ export async function signup(req, res) {
 
   try {
     if (!email || !password || !fullName) {
-      return res.status(400).json({ message: "Vui lòng điền đầy đủ tất cả các trường" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Định dạng email không hợp lệ" });
+      return res.status(400).json({ message: "Invalid email format" });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email đã tồn tại, vui lòng sử dụng email khác" });
+      return res.status(400).json({ message: "Email already exists, please use a diffrent one" });
     }
 
     const idx = Math.floor(Math.random() * 100) + 1; // generate a num between 1-100
@@ -41,9 +41,9 @@ export async function signup(req, res) {
         name: newUser.fullName,
         image: newUser.profilePic || "",
       });
-      console.log(`Đã tạo người dùng Stream cho ${newUser.fullName}`);
+      console.log(`Stream user created for ${newUser.fullName}`);
     } catch (error) {
-      console.log("Lỗi khi tạo người dùng Stream:", error);
+      console.log("Error creating Stream user:", error);
     }
 
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET_KEY, {
@@ -59,8 +59,8 @@ export async function signup(req, res) {
 
     res.status(201).json({ success: true, user: newUser });
   } catch (error) {
-    console.log("Lỗi trong controller đăng ký", error);
-    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+    console.log("Error in signup controller", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
 
@@ -69,14 +69,14 @@ export async function login(req, res) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Vui lòng điền đầy đủ tất cả các trường" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Email hoặc mật khẩu không đúng" });
+    if (!user) return res.status(401).json({ message: "Invalid email or password" });
 
     const isPasswordCorrect = await user.matchPassword(password);
-    if (!isPasswordCorrect) return res.status(401).json({ message: "Email hoặc mật khẩu không đúng" });
+    if (!isPasswordCorrect) return res.status(401).json({ message: "Invalid email or password" });
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "7d",
@@ -91,14 +91,14 @@ export async function login(req, res) {
 
     res.status(200).json({ success: true, user });
   } catch (error) {
-    console.log("Lỗi trong controller đăng nhập", error.message);
-    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+    console.log("Error in login controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
 
 export function logout(req, res) {
   res.clearCookie("jwt");
-  res.status(200).json({ success: true, message: "Đăng xuất thành công" });
+  res.status(200).json({ success: true, message: "Logout successful" });
 }
 
 export async function onboard(req, res) {
@@ -109,7 +109,7 @@ export async function onboard(req, res) {
 
     if (!fullName || !bio || !nativeLanguage || !learningLanguage || !location) {
       return res.status(400).json({
-        message: "Vui lòng điền đầy đủ tất cả các trường",
+        message: "All fields are required",
         missingFields: [
           !fullName && "fullName",
           !bio && "bio",
@@ -129,7 +129,7 @@ export async function onboard(req, res) {
       { new: true }
     );
 
-    if (!updatedUser) return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
 
     try {
       await upsertStreamUser({
@@ -139,12 +139,12 @@ export async function onboard(req, res) {
       });
       console.log(`Stream user updated after onboarding for ${updatedUser.fullName}`);
     } catch (streamError) {
-      console.log("Lỗi khi cập nhật người dùng Stream trong quá trình onboard:", streamError.message);
+      console.log("Error updating Stream user during onboarding:", streamError.message);
     }
 
     res.status(200).json({ success: true, user: updatedUser });
   } catch (error) {
-    console.error("Lỗi khi onboard:", error);
-    res.status(500).json({ message: "Lỗi máy chủ nội bộ" });
+    console.error("Onboarding error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
