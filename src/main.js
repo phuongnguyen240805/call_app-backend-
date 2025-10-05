@@ -18,7 +18,6 @@ const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [];
 
 const __dirname = path.resolve();
 
-import cors from "cors";
 
 app.use(
   cors({
