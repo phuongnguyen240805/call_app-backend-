@@ -7,53 +7,38 @@ import path from "path";
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import chatRoutes from "./routes/chat.route.js";
-
 import connectDB from "./lib/db.js";
 
 const app = express();
-const PORT = process.env.PORT;
-
-// console.log("JWT_SECRET_KEY exists:", !!process.env.JWT_SECRET_KEY);
-
-// CORS: Cho phép các origin gọi API
-const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [];
+const PORT = process.env.PORT || 5001;
 
 const __dirname = path.resolve();
 
-
+// ✅ CORS setup (quan trọng nhất)
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`❌ Blocked by CORS: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: ["https://call-app-wheat.vercel.app", "http://localhost:5173"],
+    credentials: true, // Cho phép cookie JWT cross-domain
   })
 );
 
-
+// Middlewares cơ bản
 app.use(express.json());
 app.use(cookieParser());
 
+// ✅ API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// if (process.env.NODE_ENV === "production") {
-//   app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-//   app.get("*", (req, res) => {
-//     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
-//   });
-// }
+// ✅ Production (Render sẽ không có frontend/dist)
+if (process.env.NODE_ENV === "production") {
+  app.get("/", (req, res) => {
+    res.send("✅ Backend is running on Render!");
+  });
+}
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
   connectDB();
 });
