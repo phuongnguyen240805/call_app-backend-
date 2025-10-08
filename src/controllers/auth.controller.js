@@ -2,6 +2,8 @@ import { upsertStreamUser } from "../lib/stream.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export async function signup(req, res) {
   const { email, password, fullName } = req.body;
 
@@ -53,8 +55,8 @@ export async function signup(req, res) {
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true, // ngăn chặn XSS
-      sameSite: "none", // cho phép cookie cross-domain
-      secure: true,
+      secure: isProduction, // chỉ bật HTTPS trong production
+      sameSite: isProduction ? "none" : "lax", // dev dùng lax để hoạt động trên localhost
     });
 
     res.status(201).json({ success: true, user: newUser });
@@ -85,8 +87,8 @@ export async function login(req, res) {
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true, // ngăn chặn XSS
-      sameSite: "none", // cho phép cookie cross-domain
-      secure: true,
+      secure: isProduction, // chỉ bật HTTPS trong production
+      sameSite: isProduction ? "none" : "lax", // dev dùng lax để hoạt động trên localhost
     });
 
     res.status(200).json({ success: true, user });
